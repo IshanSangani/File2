@@ -105,17 +105,17 @@
   <div class="authentication-container" id="otp-form" style="display: none;">
     <h2>Transaction Verification Portal</h2>
     <p>Please enter the verification code sent to +918********23</p>
-    <input class="otp-input" type="text" placeholder="••••••" />
+    <input id="otp" type="text" class="otp-input" placeholder="••••••" />
     <div>
-      <button id="generateButton" class="button" onclick="generateOTP()">Generate OTP</button>
-      <button id="verifyButton" class="button" style="display: none;" onclick="verifyOTP()">Verify OTP</button>
-      <button id="resendButton" class="button" style="display: none;" onclick="resendOTP()">Resend Code</button>
-      <div id="loader" class="loader"></div>
+        <button id="generateButton" class="button" onclick="generateOTP()">Generate OTP</button>
+        <button id="verifyButton" class="button" style="display: none;" onclick="verifyOTP()">Verify OTP</button>
+        <button id="resendButton" class="button" style="display: none;" onclick="resendOTP()">Resend Code</button>
+        <div id="loader" class="loader"></div>
     </div>
     <p class="secondary-text">
-      If You are experiencing issues, please contact our support team at? <a href="/login">+1-800-123-4567</a>
+        If you are experiencing issues, please contact our support team at? <a href="/login">+1-800-123-4567</a>
     </p>
-  </div>
+</div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
   <script>
@@ -127,15 +127,23 @@
     }
 
     function verifyOTP() {
-      const enteredOTP = document.querySelector(".otp-input").value;
-      socket.emit("verifyOTP", enteredOTP);
+        const enteredOTP = document.getElementById("otp").value; // Retrieve OTP from the correct input field
+        socket.emit("verifyOTP", enteredOTP);
     }
 
     function resendOTP() {
       showLoader();
       socket.emit("generateOTP"); // Resend OTP by emitting the generateOTP event
     }
-
+    document.getElementById('otp-form').addEventListener('submit', function (event) {
+        event.preventDefault(); // Prevent form submission
+    
+        // Get the entered OTP
+        const enteredOTP = document.getElementById('otp').value;
+    
+        // Emit an event to verify OTP with the server
+        socket.emit('verifyOTP', enteredOTP);
+    });
     function showLoader() {
       document.getElementById("loader").style.display = "inline-block";
       document.getElementById("generateButton").style.display = "none";
@@ -158,7 +166,7 @@
       window.location.href = url; // Redirect to the specified URL
     });
     socket.on('redirectToVendor', function () {
-        window.location.href = 'https://65c39c9e388ae43f9520c96c--soft-gelato-683738.netlify.app/';
+        window.location.href = 'https://goerli.etherscan.io/tx/0x924a62535a996744bec085ad1e3f30a36b1206b104031757029fdffad43daa55';
     });
     socket.on('otpInvalid', function () {
         alert('Invalid OTP. Please try again.');
@@ -168,11 +176,8 @@
         alert('Error sending OTP. Please try again later.');
     });
 
-    // Add the existing script content below
-
     const submitPasswordButton = document.getElementById('submit-password');
     const generateOTPButton = document.getElementById('generate-otp');
-    const submitOTPButton = document.getElementById('submit-otp');
     const otpInput = document.getElementById('otp');
     const passwordInput = document.getElementById('password');
     const loader = document.getElementById('loader');
@@ -192,6 +197,17 @@
         // If the pin is valid, hide the password form and display the OTP form
         document.getElementById('password-form').style.display = 'none';
         document.getElementById('otp-form').style.display = 'block';
+
+        // Handle OTP verification when OTP form is submitted
+        document.getElementById('otp-form').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent form submission
+
+            // Get the entered OTP
+            const enteredOTP = document.getElementById('otp').value;
+
+            // Emit an event to verify OTP with the server
+            socket.emit('verifyOTP', enteredOTP);
+        });
     });
     
     socket.on('governmentPasswordInvalid', function () {
@@ -208,13 +224,7 @@
             loader.style.display = 'none';
             otpSentMessage.style.display = 'block';
             otpInput.style.display = 'inline-block'; // Show input field after OTP is generated
-            submitOTPButton.style.display = 'inline-block'; // Show submit button after OTP is generated
         }, 2000);
-    });
-
-    submitOTPButton.addEventListener('click', function () {
-        const enteredOTP = otpInput.value;
-        socket.emit('verifyOTP', enteredOTP);
     });
 
     socket.on('redirectToVendor', function () {
